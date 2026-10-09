@@ -9,7 +9,7 @@ struct ContentView: View {
 
     var body: some View {
         TabView(selection: $selectedTab) {
-            Tab("Listen", systemImage: "waveform", value: 0) {
+            Tab("Listen", systemImage: "headphones", value: 0) {
                 ListenView(showImport: $showImport, showPlayer: $showPlayer, selectedTab: $selectedTab).accessibilityHidden(showPlayer)
             }
             Tab("Library", systemImage: "square.stack", value: 1) {
@@ -118,7 +118,7 @@ struct TrackRow: View {
                 Divider()
                 Button(player.favorites.contains(track.id) ? "Remove from favorites" : "Add to favorites", systemImage: player.favorites.contains(track.id) ? "heart.fill" : "heart") { player.toggleFavorite(track) }
                 Button("Add to playlist", systemImage: "text.badge.plus") { showPlaylistPicker = true }
-                Button("Lyrics", systemImage: "quote.bubble") { showLyrics = true }
+                Button("Lyrics", systemImage: "music.note") { showLyrics = true }
                 Button("Track details", systemImage: "info.circle") { showInfo = true }
                 if let url = player.url(for: track) { ShareLink(item: url) { Label("Share audio file", systemImage: "square.and.arrow.up") } }
                 if track.isImported {
@@ -154,7 +154,7 @@ struct MiniPlayer: View {
             }.buttonStyle(.plain).accessibilityLabel("Open now playing")
             Button { player.toggle() } label: { Image(systemName: player.isPlaying ? "pause.fill" : "play.fill").font(.system(size: 19)).frame(width: 40, height: 44) }
                 .buttonStyle(.plain).accessibilityLabel(player.isPlaying ? "Pause" : "Play").accessibilityIdentifier("mini.playPause")
-            Button { player.next() } label: { Image(systemName: "forward.fill").font(.system(size: 18)).frame(width: 36, height: 44) }
+            Button { player.next() } label: { Image(systemName: "forward.end.fill").font(.system(size: 18)).frame(width: 36, height: 44) }
                 .buttonStyle(.plain).accessibilityLabel("Next track").accessibilityIdentifier("mini.next")
         }.padding(.horizontal, 14).padding(.vertical, 5)
     }

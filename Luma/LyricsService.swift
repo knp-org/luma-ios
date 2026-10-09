@@ -115,7 +115,7 @@ actor LRCLIBClient: LyricsSearching {
         components.percentEncodedQuery = components.percentEncodedQuery?.replacingOccurrences(of: "+", with: "%2B")
         var request = URLRequest(url: components.url!, timeoutInterval: 20)
         request.setValue("application/json", forHTTPHeaderField: "Accept")
-        request.setValue("Luma v1.0.0 (\(contact))", forHTTPHeaderField: "User-Agent")
+        request.setValue("Luma v1.0.1 (\(contact))", forHTTPHeaderField: "User-Agent")
         return request
     }
 

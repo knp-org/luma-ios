@@ -27,7 +27,11 @@ struct LumaApp: App {
         if ProcessInfo.processInfo.arguments.contains("--ui-testing") {
             let suite = "studio.luma.ui-tests"
             let defaults = UserDefaults(suiteName: suite)!
-            if ProcessInfo.processInfo.arguments.contains("--reset-ui-state") { defaults.removePersistentDomain(forName: suite) }
+            if ProcessInfo.processInfo.arguments.contains("--reset-ui-state") {
+                defaults.removePersistentDomain(forName: suite)
+                // View preferences use @AppStorage in the standard store.
+                UserDefaults.standard.removeObject(forKey: "player.visualizer")
+            }
             let documents = MusicPlayer.documents.appendingPathComponent("UITesting", isDirectory: true)
             if ProcessInfo.processInfo.arguments.contains("--reset-ui-state") { try? FileManager.default.removeItem(at: documents) }
             if ProcessInfo.processInfo.arguments.contains("--seed-test-library"), defaults.data(forKey: "luma.library.v2") == nil { seedTestLibrary(defaults: defaults, documents: documents) }

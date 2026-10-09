@@ -31,7 +31,7 @@ struct LyricsView: View {
                 if text.isEmpty {
                     Spacer()
                     VStack(spacing: 18) {
-                        Image(systemName: "quote.bubble").font(.system(size: 42, weight: .ultraLight)).foregroundStyle(Theme.accent)
+                        Image(systemName: "music.note").font(.system(size: 42, weight: .ultraLight)).foregroundStyle(Theme.accent)
                         Text("No lyrics").font(.system(size: 30, design: .serif)).multilineTextAlignment(.center)
                         Text("Find lyrics online, paste text, or import an LRC file.")
                             .font(.subheadline).foregroundStyle(Theme.secondary).multilineTextAlignment(.center)

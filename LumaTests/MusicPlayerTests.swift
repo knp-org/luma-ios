@@ -138,7 +138,7 @@ struct MusicPlayerTests {
         #expect(AudioVisualizer.displayLevel(decibels: -12) > AudioVisualizer.displayLevel(decibels: -36))
     }
 
-    @Test func visualizerMetersAudioAndStopsWhenHidden() async throws {
+    @Test func visualizerShowsSpectrumAndStopsWhenHidden() async throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: directory) }
@@ -164,29 +164,36 @@ struct MusicPlayerTests {
         let visualizer = AudioVisualizer()
         defer { visualizer.setActive(false); tone.stop(); silence.stop() }
         visualizer.attach(tone)
-        #expect(!tone.isMeteringEnabled)
         visualizer.setActive(true)
         #expect(tone.play())
-        try await Task.sleep(for: .milliseconds(300))
-        #expect(visualizer.levels.contains { $0 > 0.1 })
-        // Every bar assigned to the active right channel responds immediately,
-        // including the left edge: this is no longer a scrolling level history.
-        #expect(visualizer.levels.enumerated().filter { $0.offset % 2 == 1 }.allSatisfy { $0.element > 0.1 })
-        #expect(visualizer.levels.enumerated().filter { $0.offset % 2 == 0 }.allSatisfy { $0.element == 0 })
+        try await Task.sleep(for: .milliseconds(250))
         #expect(visualizer.levels.count == AudioVisualizer.sampleCount)
-        let loudest = visualizer.levels.max() ?? 0
+        // A pure 440 Hz tone lights up a mid band, not the bass or treble ends.
+        let loudestBand = try #require(visualizer.levels.indices.max { visualizer.levels[$0] < visualizer.levels[$1] })
+        #expect(visualizer.levels[loudestBand] > 0.5)
+        #expect((15...25).contains(loudestBand))
+        #expect(visualizer.peaks[loudestBand] >= visualizer.levels[loudestBand])
+        #expect(visualizer.levels.prefix(4).allSatisfy { $0 < 0.1 })
+        #expect(visualizer.levels.suffix(6).allSatisfy { $0 < 0.1 })
+        let loudest = visualizer.levels[loudestBand]
         try await Task.sleep(for: .milliseconds(1_250))
         #expect((visualizer.levels.max() ?? 0) < loudest * 0.5)
+        // Muting drops the bars, matching the desktop app.
+        tone.currentTime = 0
+        tone.volume = 0
+        try await Task.sleep(for: .milliseconds(400))
+        #expect((visualizer.levels.max() ?? 0) < 0.05)
+        tone.volume = 1
         visualizer.attach(silence)
-        #expect(!tone.isMeteringEnabled)
         #expect(visualizer.levels.allSatisfy { $0 == 0 })
         tone.stop()
         #expect(silence.play())
         try await Task.sleep(for: .milliseconds(200))
         #expect(visualizer.levels.allSatisfy { $0 == 0 })
         visualizer.setActive(false)
-        #expect(!silence.isMeteringEnabled)
+        #expect(visualizer.peaks.allSatisfy { $0 == 0 })
         visualizer.attach(tone)
+        tone.currentTime = 0
         #expect(tone.play())
         try await Task.sleep(for: .milliseconds(150))
         #expect(visualizer.levels.allSatisfy { $0 == 0 })

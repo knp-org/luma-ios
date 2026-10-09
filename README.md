@@ -1,6 +1,6 @@
 # Luma
 
-Version **1.0.0** · [GitHub](https://github.com/knp-org/luma-ios) · [AGPL-3.0](LICENSE)
+Version **1.0.1** · [GitHub](https://github.com/knp-org/luma-ios) · [AGPL-3.0](LICENSE)
 
 A local music player for **iOS 26+**, built with SwiftUI and AVFoundation. Luma pairs silver Liquid Glass controls with full-color album artwork and subtle backgrounds drawn from the current cover.
 
@@ -10,7 +10,7 @@ Import your own music, organize playlists, follow lyrics, and explore your liste
 
 | Library | Now Playing |
 | :---: | :---: |
-| <img src="Screenshots/readme-library.png" width="280" alt="Library with colorful album covers, genre and year filters, and favorites"> | <img src="Screenshots/readme-now-playing.png" width="280" alt="Now Playing with full-color artwork, silver playback controls, and audio details"> |
+| <img src="Screenshots/readme-library.png" width="280" alt="Library with colorful album covers, genre and year filters, and favorites"> | <img src="Screenshots/readme-now-playing.png" width="280" alt="Now Playing with full-color artwork, spectrum visualizer, silver playback controls, and audio details"> |
 | **Playlists** | **Playback Insights** |
 | <img src="Screenshots/readme-playlist.png" width="280" alt="Night Drive playlist with a cover collage and play, shuffle, and add music controls"> | <img src="Screenshots/readme-insights.png" width="280" alt="Playback Insights showing listening totals and a daily activity chart"> |
 

@@ -36,7 +36,7 @@ struct LyricsServiceTests {
         #expect(items["album_name"] == nil)
         #expect(components.percentEncodedQuery?.contains("%2B") == true)
         #expect(request.httpBody == nil)
-        #expect(request.value(forHTTPHeaderField: "User-Agent") == "Luma v1.0.0 (https://example.com/luma-test)")
+        #expect(request.value(forHTTPHeaderField: "User-Agent") == "Luma v1.0.1 (https://example.com/luma-test)")
     }
 
     @Test func resultsPreferMatchingDurationAndTimedLyrics() async throws {

@@ -6,7 +6,7 @@ Current documentation captures:
 | --- | --- |
 | [listen.png](listen.png) | Listen home screen and recent tracks |
 | [readme-library.png](readme-library.png) | Songs, covers, favorites, and filters |
-| [readme-now-playing.png](readme-now-playing.png), [now-playing.png](now-playing.png), [album-color-warm.png](album-color-warm.png) | Artwork and playback controls (identical captures) |
+| [readme-now-playing.png](readme-now-playing.png), [now-playing.png](now-playing.png), [album-color-warm.png](album-color-warm.png) | Artwork, visualizer strip, and playback controls (identical captures) |
 | [readme-playlist.png](readme-playlist.png), [playlist.png](playlist.png) | Playlist details (identical captures) |
 | [readme-insights.png](readme-insights.png), [insights.png](insights.png) | Listening totals and daily activity (identical captures) |
 | [visualizer.png](visualizer.png) | Visualizer paused at its baseline |

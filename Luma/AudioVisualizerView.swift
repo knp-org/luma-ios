@@ -3,37 +3,18 @@ import SwiftUI
 struct PlayerArtworkView: View {
     @Environment(MusicPlayer.self) private var player
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var showsVisualizer = false
-    var isVisible: Bool
 
     var body: some View {
-        ZStack(alignment: .bottomTrailing) {
-            if showsVisualizer {
-                AudioVisualizerView(visualizer: player.visualizer, isPlaying: player.isPlaying, isVisible: isVisible)
-            } else {
-                TrackArtwork(track: player.current, showType: true)
-            }
-            Button {
-                showsVisualizer.toggle()
-            } label: {
-                Label(showsVisualizer ? "Artwork" : "Visualizer", systemImage: showsVisualizer ? "square.stack" : "waveform")
-                    .font(.system(size: 12, weight: .medium))
-                    .padding(.horizontal, 14).frame(height: 44)
-            }
-            .buttonStyle(.plain)
-            .glassEffect(.regular.interactive(), in: .capsule)
-            .accessibilityLabel(showsVisualizer ? "Show artwork" : "Show visualizer")
-            .accessibilityIdentifier("player.visualizerToggle")
-            .padding(14)
-        }
-        .aspectRatio(1, contentMode: .fit)
-        .clipShape(.rect(cornerRadius: 18))
-        .shadow(color: .black.opacity(0.35), radius: 30, y: 20)
-        .scaleEffect(player.isPlaying || showsVisualizer ? 1 : 0.96)
-        .animation(reduceMotion ? nil : .spring(duration: 0.5), value: player.isPlaying)
+        TrackArtwork(track: player.current, showType: true)
+            .aspectRatio(1, contentMode: .fit)
+            .clipShape(.rect(cornerRadius: 18))
+            .shadow(color: .black.opacity(0.35), radius: 30, y: 20)
+            .scaleEffect(player.isPlaying ? 1 : 0.96)
+            .animation(reduceMotion ? nil : .spring(duration: 0.5), value: player.isPlaying)
     }
 }
 
+/// Thin silver spectrum strip that sits under the artwork, with a faint reflection and falling peak caps.
 struct AudioVisualizerView: View {
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -41,37 +22,61 @@ struct AudioVisualizerView: View {
     let isPlaying: Bool
     let isVisible: Bool
 
-    private var sampling: Bool { isVisible && isPlaying && scenePhase == .active && !reduceMotion }
+    // Sampling continues briefly after pausing so the bars fall instead of vanishing.
+    private var sampling: Bool { isVisible && scenePhase == .active && !reduceMotion }
     private var status: String { reduceMotion ? "Reduce Motion is on" : isPlaying ? "Live audio" : "Paused" }
 
     var body: some View {
-        ZStack {
-            LinearGradient(colors: [Color(white: 0.16), Color(white: 0.035)], startPoint: .topLeading, endPoint: .bottomTrailing)
-            Circle().fill(.white.opacity(0.06)).blur(radius: 40).padding(45)
-            VStack(alignment: .leading, spacing: 6) {
-                Text("AUDIO VISUALIZER").font(.system(size: 9, weight: .semibold)).tracking(2)
-                Text(status).font(.system(size: 11)).foregroundStyle(Theme.secondary)
-                Spacer()
-            }.padding(22)
-            GeometryReader { geometry in
-                HStack(alignment: .bottom, spacing: 4) {
-                    ForEach(0..<AudioVisualizer.sampleCount, id: \.self) { index in
-                        Capsule()
-                            .fill(LinearGradient(colors: [.white.opacity(0.95), Color(white: 0.45)], startPoint: .top, endPoint: .bottom))
-                            .frame(height: max(2, CGFloat(visualizer.levels[index]) * geometry.size.height))
-                            .animation(sampling ? .linear(duration: 1.0 / 30) : nil, value: visualizer.levels[index])
-                    }
-                }.frame(height: geometry.size.height, alignment: .bottom)
-            }
-            .padding(.horizontal, 22).padding(.vertical, 76)
-            .accessibilityHidden(true)
+        Canvas { context, size in
+            Self.paint(context, size: size, levels: visualizer.levels, peaks: visualizer.peaks)
         }
-        .overlay { RoundedRectangle(cornerRadius: 18).strokeBorder(.white.opacity(0.12), lineWidth: 1) }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Audio visualizer")
         .accessibilityValue(status)
         .accessibilityIdentifier("player.visualizer")
         .onChange(of: sampling, initial: true) { _, active in visualizer.setActive(active) }
         .onDisappear { visualizer.setActive(false) }
+    }
+
+    private static func paint(_ context: GraphicsContext, size: CGSize, levels: [Float], peaks: [Float]) {
+        let count = levels.count
+        let step = size.width / CGFloat(count)
+        let baseline = size.height * 0.78
+        let maximum = max(1, baseline - 10)
+        let barWidth = max(2, step * 0.48)
+        let silver = Gradient(stops: [
+            .init(color: .white.opacity(0.28), location: 0),
+            .init(color: .white.opacity(0.72), location: 0.45),
+            .init(color: .white, location: 1),
+        ])
+        let reflection = Gradient(colors: [.white.opacity(0.16), .white.opacity(0)])
+        let barStyle = StrokeStyle(lineWidth: barWidth, lineCap: .round)
+
+        for index in 0..<count {
+            let x = step * (CGFloat(index) + 0.5)
+            let level = CGFloat(levels[index])
+            let bar = max(1, level * maximum)
+            var context = context
+
+            context.opacity = 0.45 + level * 0.55
+            context.stroke(Path { $0.move(to: CGPoint(x: x, y: baseline)); $0.addLine(to: CGPoint(x: x, y: baseline - bar)) },
+                           with: .linearGradient(silver, startPoint: CGPoint(x: 0, y: baseline), endPoint: CGPoint(x: 0, y: 6)),
+                           style: barStyle)
+
+            // A quiet reflection grounds the bars without competing with the art.
+            context.opacity = level
+            context.stroke(Path { $0.move(to: CGPoint(x: x, y: baseline + 5)); $0.addLine(to: CGPoint(x: x, y: baseline + 5 + bar * 0.18)) },
+                           with: .linearGradient(reflection, startPoint: CGPoint(x: 0, y: baseline + 5), endPoint: CGPoint(x: 0, y: size.height)),
+                           style: barStyle)
+
+            let peak = CGFloat(peaks[index])
+            if peak > 0.03 {
+                let tip = baseline - peak * maximum - 4
+                let half = (barWidth - 1.5) / 2
+                context.opacity = min(0.7, peak * 0.85)
+                context.stroke(Path { $0.move(to: CGPoint(x: x - half, y: tip)); $0.addLine(to: CGPoint(x: x + half, y: tip)) },
+                               with: .color(.white), lineWidth: 1.5)
+            }
+        }
     }
 }

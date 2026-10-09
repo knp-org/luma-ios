@@ -58,7 +58,7 @@ struct PlayerSettingsView: View {
                     }.accessibilityIdentifier("settings.speed")
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Track volume").font(.body)
-                        Slider(value: $player.volume, in: 0...1).accessibilityLabel("Track volume")
+                        ThinSlider(value: Binding(get: { Double(player.volume) }, set: { player.volume = Float($0) }), range: 0...1).accessibilityLabel("Track volume")
                     }
                 }
                 Section {
